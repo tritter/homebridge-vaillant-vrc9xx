@@ -15,7 +15,12 @@ export class HTTPClient {
             options: {
                 method: command.method,
                 body: JSON.stringify(command.data) || null,
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    "Content-type": "application/json; charset=UTF-8",
+                    "Accept-Encoding": "gzip",
+                    "Accept": "application/json",
+                    "Vaillant-Mobile-App": "multiMATIC v2.1.45 b389 (Android)"
+                },
             },
         }
     }
