@@ -3,14 +3,15 @@ import VRC700Accessory from './VRC700Accessory.mjs'
 let Characteristic, Service
 
 class VRC700Switch extends VRC700Accessory {
-    constructor(config, desc, api, platform, log) {
-        super(config, desc, api, platform, log)
+    constructor(log, platform, accessory, config, desc) {
+        Characteristic = platform.Characteristic
+        Service = platform.Service
 
-        Characteristic = api.hap.Characteristic
-        Service = api.hap.Service
+        super(log, platform, accessory, config, desc.name)
 
-        this.name = desc.name
         this.currentValue = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+
+        this._services = this.createServices()
 
         platform.registerObserver(desc.serial, desc.path, this.updateCurrentValue.bind(this))
     }
@@ -24,18 +25,18 @@ class VRC700Switch extends VRC700Accessory {
             ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
             : Characteristic.ContactSensorState.CONTACT_DETECTED
 
-        this.accessoryService.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.currentValue)
+        this.accessoryService.getCharacteristic(Characteristic.ContactSensorState)
+            .updateValue(this.currentValue)
     }
 
     createAccessoryService() {
-        let service = new Service.ContactSensor(this.name, this.name)
+        const service = this.accessory.getService(this.udid)
+      || this.accessory.addService(Service.Switch, this.name, this.udid)
         service
             .setCharacteristic(Characteristic.Name, this.name)
             .getCharacteristic(Characteristic.ContactSensorState)
-            .on('get', this.getCurrentValue.bind(this))
-
+            .onGet(this.getCurrentValue.bind(this))
         this.accessoryService = service
-
         return service
     }
 }

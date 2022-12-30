@@ -1,5 +1,6 @@
 {
-    "name": "homebridge-vaillant-vrc9xx",
+    "name": "@tritter/homebridge-vaillant-vrc9xx",
+    "displayName": "VaillantVRC9xx",
     "version": "0.5.2",
     "description": "Vaillant VRC9xx - Homebridge Platform Plugin ",
     "repository": {
@@ -10,7 +11,6 @@
         "registry": "https://registry.npmjs.org"
     },
     "main": "src/index.js",
-    "scripts": {},
     "keywords": [
         "VR900",
         "VR920",
@@ -25,15 +25,22 @@
     "license": "MIT",
     "dependencies": {
         "esm": "^3.2.25",
-        "fakegato-history": "^0.6.1",
-        "homebridge-lib": "^5.1.16",
+        "fakegato-history": "^0.6.2",
+        "homebridge-lib": "^6.0.2",
         "lodash": "^4.17.21",
-        "moment": "^2.29.1",
-        "node-fetch-cookies": "^2.0.3",
+        "moment": "^2.29.4",
+        "node-fetch-cookies": "2.0.3",
         "rxjs": "^6.5.3"
     },
+    "devDependencies": {
+        "nodemon": "^2.0.13",
+        "homebridge": "^1.6.0"
+    },
     "engines": {
-        "homebridge": ">=0.4.50",
-        "node": ">12.0.0"
+        "homebridge": "^1.6.0",
+        "node": ">=18.12.1"
+    },
+    "scripts": {
+        "watch": "npm link && nodemon"
     }
 }

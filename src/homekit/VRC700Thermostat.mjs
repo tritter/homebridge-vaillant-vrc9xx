@@ -7,11 +7,11 @@ import VRC700HeaterRegulator from './VRC700HeaterRegulator.mjs'
 import VRC700HotWaterRegulator from './VRC700HotWaterRegulator.mjs'
 
 class VRC700Thermostat {
-    constructor(api, log, config, platform) {
+    constructor(log, platform, accessory, config) {
         //Homebridge Config.
         this.log = log
-        this.api = api
         this.platform = platform
+        this.accessory = accessory
         this.config = config
 
         this.sensors = config.sensors
@@ -35,8 +35,8 @@ class VRC700Thermostat {
 
     createSwitches() {
         let accessories = []
-        this.switches.forEach(descr => {
-            let accessory = new VRC700Switch(this.config, descr, this.api, this.platform, this.log)
+        this.switches.forEach(desc => {
+            let accessory = new VRC700Switch(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(accessory)
         })
 
@@ -45,8 +45,8 @@ class VRC700Thermostat {
 
     createSensors() {
         let accessories = []
-        this.sensors.forEach(descr => {
-            let accessory = new VRC700TemperatureSensor(this.config, descr, this.api, this.platform, this.log)
+        this.sensors.forEach(desc => {
+            let accessory = new VRC700TemperatureSensor(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(accessory)
         })
 
@@ -55,18 +55,18 @@ class VRC700Thermostat {
 
     createRegulators() {
         let accessories = []
-        this.regulators.forEach(descr => {
-            let regulator = new VRC700HeaterRegulator(this.config, descr, this.api, this.platform, this.log)
+        this.regulators.forEach(desc => {
+            let regulator = new VRC700HeaterRegulator(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(regulator)
         })
 
-        this.dhw_regulators.forEach(descr => {
-            let regulator = new VRC700HotWaterRegulator(this.config, descr, this.api, this.platform, this.log)
+        this.dhw_regulators.forEach(desc => {
+            let regulator = new VRC700HotWaterRegulator(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(regulator)
         })
 
-        this.rbr_regulators.forEach(descr => {
-            let regulator = new VRC700ValveRegulator(this.config, descr, this.api, this.platform, this.log)
+        this.rbr_regulators.forEach(desc => {
+            let regulator = new VRC700ValveRegulator(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(regulator)
         })
 

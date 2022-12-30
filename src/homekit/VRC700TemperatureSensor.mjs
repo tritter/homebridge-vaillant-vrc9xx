@@ -7,20 +7,21 @@ import historyFactory from 'fakegato-history'
 let HistoryService, Eve, Characteristic
 
 class VRC700TemperatureSensor extends VRC700Accessory {
-    constructor(config, desc, api, platform, log) {
-        super(config, desc, api, platform, log)
+    constructor(log, platform, accessory, config, desc) {
+        HistoryService = historyFactory(platform.api)
+        Eve = new homebridgeLib.EveHomeKitTypes(platform.api)
+        Characteristic = platform.Characteristic
 
-        HistoryService = historyFactory(api)
-        Eve = new homebridgeLib.EveHomeKitTypes(api)
-        Characteristic = api.hap.Characteristic
+        super(log, platform, accessory, config, desc.name)
 
-        this.name = desc.name
         this.displayName = desc.name
 
         this.currentTemperature = undefined
         this.serial = desc.id
 
         this.platform = platform
+
+        this._services = this.createServices()
 
         this.platform.registerObserver(desc.serial, desc.path, this.updateCurrentTemperature.bind(this))
     }
@@ -33,7 +34,8 @@ class VRC700TemperatureSensor extends VRC700Accessory {
         this.log(`Updating Current Temperature from ${this.currentTemperature} to ${value.current}`)
         this.currentTemperature = value.current
 
-        this.accessoryService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(this.currentTemperature)
+        this.accessoryService.getCharacteristic(Characteristic.CurrentTemperature)
+            .updateValue(this.currentTemperature)
 
         this.addHistoricalEntry()
     }
@@ -60,7 +62,7 @@ class VRC700TemperatureSensor extends VRC700Accessory {
         service
             .setCharacteristic(Characteristic.Name, this.name)
             .getCharacteristic(Characteristic.CurrentTemperature)
-            .on('get', this.getCurrentTemperature.bind(this))
+            .onGet(this.getCurrentTemperature.bind(this))
 
         this.accessoryService = service
 

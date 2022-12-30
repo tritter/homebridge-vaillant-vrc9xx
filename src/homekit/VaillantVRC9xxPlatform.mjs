@@ -4,7 +4,7 @@ import _ from 'lodash'
 import util from 'util'
 import packageFile from '../../package.json'
 
-import VRC700Thermostat from './VRC700Thermostat.mjs'
+import VaillantVRC9xxPlatformAccessory from './VaillantVRC9xxPlatformAccessory.mjs'
 import VRC9xxAPI from '../api/VaillantAPIClient.mjs'
 import VRC9xxAPIPoller, { VAILLANT_POLLER_EVENTS } from '../api/VaillantAPIPoller.mjs'
 import { buildFacilityDescriptor } from './HomeKitDescriptor.mjs'
@@ -14,7 +14,7 @@ const PLUGIN_NAME = packageFile.name
 const FRIENDLY_NAME = 'VaillantVRC9xx'
 
 export default homebridge => {
-    homebridge.registerPlatform(PLUGIN_NAME, FRIENDLY_NAME, VaillantVRC9xxPlatform, true)
+    homebridge.registerPlatform(FRIENDLY_NAME, VaillantVRC9xxPlatform)
 }
 
 const DEFAULT_CONFIG = {
@@ -30,8 +30,14 @@ const DEFAULT_CONFIG = {
     },
 }
 
+
 class VaillantVRC9xxPlatform {
+
     constructor(log, config, api) {
+        this.Characteristic = api.hap.Characteristic
+        this.Service = api.hap.Service
+        this.Accessory = api.hap.Accessory
+
         log(`${FRIENDLY_NAME} Platform loaded - version ${VERSION}`)
 
         if (!config) {
@@ -40,12 +46,10 @@ class VaillantVRC9xxPlatform {
             return
         }
 
+        this.accessories = []
         this.config = this.mergeDefault(config)
         this.api = api
         this.log = log
-
-        // state
-        this._accessories = {}
 
         // create API client & poller
         this.VaillantAPI = new VRC9xxAPI(
@@ -62,9 +66,9 @@ class VaillantVRC9xxPlatform {
         this.Poller.on(VAILLANT_POLLER_EVENTS.FACILITIES, this.facilitiesEvent.bind(this))
         this.Poller.on(VAILLANT_POLLER_EVENTS.FACILITIES_DONE, this.facilitiesDone.bind(this))
 
-        defineCustomCharateristics(api.hap.Characteristic)
+        defineCustomCharateristics(this.api.hap.Characteristic)
 
-        // register lifecycle message
+        this.api.on('accessoryRestored', this.configureAccessory.bind(this))
         this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this))
     }
 
@@ -77,8 +81,15 @@ class VaillantVRC9xxPlatform {
         return newConfig
     }
 
+    configureAccessory(accessory) {
+        this.log.info('Loading accessory from cache:', accessory.displayName);
+        this.accessories.push(accessory);
+    }
+
     async didFinishLaunching() {
         this.log('Finished launching')
+        this.log('Start polling for data')
+        await this.Poller.start()
     }
 
     facilitiesEvent(descriptor) {
@@ -88,13 +99,8 @@ class VaillantVRC9xxPlatform {
             const name = facility.name
             const serial = facility.serialNumber
 
-            if (this._accessories[serial]) {
-                // nothing to do, already known
-                return
-            }
-
-            var uuid = this.api.hap.uuid.generate(serial)
-            this.log(`New facility ${name} - ${serial} - ${uuid}`)
+            const uuid = this.api.hap.uuid.generate(serial)
+            const accessory = this.accessories.find(a => a.UUID === uuid);
 
             const config_data = {
                 name,
@@ -109,7 +115,16 @@ class VaillantVRC9xxPlatform {
                 switches: facility.switches,
             }
 
-            this._accessories[serial] = config_data
+            const platformAccessory = new this.api.platformAccessory(name, uuid);
+            platformAccessory.context.config = config_data;
+            new VaillantVRC9xxPlatformAccessory(this.log, this, platformAccessory);
+            if (accessory) {
+                this.log(`Restoring facility ${name} - ${serial} - ${uuid}`)
+                this.api.updatePlatformAccessories([platformAccessory]);
+              } else {
+                this.log(`New facility ${name} - ${serial} - ${uuid}`)
+                this.api.registerPlatformAccessories(PLUGIN_NAME, FRIENDLY_NAME, [platformAccessory]);
+              }
         } catch (error) {
             this.log(error)
             throw error
@@ -117,21 +132,6 @@ class VaillantVRC9xxPlatform {
     }
 
     facilitiesDone() {
-        try {
-            let accessories = Object.entries(this._accessories)
-                .map(([serial, config]) => new VRC700Thermostat(this.api, this.log, config, this))
-                .map(thermostat => thermostat.getAccessories())
-                .reduce((prev, val) => {
-                    prev.push(...val)
-                    return prev
-                }, [])
-
-            this.registerAccessories(accessories)
-        } catch (error) {
-            this.log(error)
-            throw error
-        }
-
         this.log(`End of initialization`)
     }
 
@@ -139,13 +139,13 @@ class VaillantVRC9xxPlatform {
         return this.Poller.subscribe(serial, path, observer)
     }
 
-    async accessories(callback) {
-        this.log('Received callback')
-        this.registerAccessories = callback
+    // async accessories(callback) {
+    //     this.log('Received callback')
+    //     this.registerAccessories = callback
 
-        this.log('Start polling for data')
-        await this.Poller.start()
-    }
+    //     this.log('Start polling for data')
+    //     await this.Poller.start()
+    // }
 }
 
 function defineCustomCharateristics(Characteristic) {

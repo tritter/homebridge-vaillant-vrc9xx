@@ -3,14 +3,11 @@ import VRC700Accessory from './VRC700Accessory.mjs'
 let Characteristic, Service
 
 class VRC700HeaterRegulator extends VRC700Accessory {
-    constructor(config, desc, api, platform, log) {
-        super(config, desc, api, platform, log)
+    constructor(log, platform, accessory, config, desc) {
+        Characteristic = platform.Characteristic
+        Service = platform.Service
 
-        Characteristic = api.hap.Characteristic
-        Service = api.hap.Service
-
-        this.name = desc.name
-        this.api = api
+        super(log, platform, accessory, config, desc.name)
 
         //State
         this.CurrentHeatingCoolingState = undefined
@@ -23,6 +20,8 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.setTargetDayTemperatureCallback = desc.target_temp.update_callback
         this.setTargetNightTemperatureCallback = desc.target_reduced_temp.update_callback
         this.setHeatingModeCallback = desc.target_status.update_callback
+
+        this._services = this.createServices()
 
         platform.registerObserver(desc.serial, desc.current_temp.path, this.updateCurrentTemperature.bind(this))
         platform.registerObserver(
@@ -276,53 +275,56 @@ class VRC700HeaterRegulator extends VRC700Accessory {
     }
 
     createAccessoryService() {
-        var regulatorService = new Service.Thermostat(this.name, this.name)
-
+        const regulatorService = this.accessory.getService(this.udid) 
+        || this.accessory.addService(Service.Thermostat, this.name, this.udid)
         regulatorService
             .getCharacteristic(Characteristic.CurrentHeatingCoolingState)
-            .on('get', this.getCurrentHeatingCoolingState.bind(this))
+            .onGet(this.getCurrentHeatingCoolingState.bind(this))
 
         regulatorService
             .getCharacteristic(Characteristic.TargetHeatingCoolingState)
-            .on('get', this.getTargetHeatingCoolingState.bind(this))
-            .on('set', this.setTargetHeatingCoolingState.bind(this))
+            .onGet(this.getTargetHeatingCoolingState.bind(this))
+            .onSet(this.setTargetHeatingCoolingState.bind(this))
 
         regulatorService
             .getCharacteristic(Characteristic.CurrentTemperature)
-            .on('get', this.getCurrentTemperature.bind(this))
+            .onGet(this.getCurrentTemperature.bind(this))
 
         regulatorService
             .getCharacteristic(Characteristic.TargetTemperature)
-            .on('get', this.getTargetTemperature.bind(this))
-            .on('set', this.setTargetTemperature.bind(this))
+            .onGet(this.getTargetTemperature.bind(this))
+            .onSet(this.setTargetTemperature.bind(this))
 
         regulatorService
             .getCharacteristic(Characteristic.TemperatureDisplayUnits)
-            .on('get', this.getTemperatureDisplayUnits.bind(this))
-            .on('set', this.setTemperatureDisplayUnits.bind(this))
+            .onGet(this.getTemperatureDisplayUnits.bind(this))
+            .onSet(this.setTemperatureDisplayUnits.bind(this))
 
-        regulatorService.getCharacteristic(Characteristic.Name).on('get', this.getName.bind(this))
+        regulatorService.getCharacteristic(Characteristic.Name).onGet(this.getName.bind(this))
 
-        regulatorService.getCharacteristic(Characteristic.TargetHeatingCoolingState).setProps({
-            validValues: [0, 1, 2, 3],
-        })
+        regulatorService.getCharacteristic(Characteristic.TargetHeatingCoolingState)
+            .setProps({
+                validValues: [0, 1, 2, 3],
+            })
 
-        regulatorService.getCharacteristic(Characteristic.CurrentTemperature).setProps({
-            maxValue: 100,
-            minValue: 0,
-            minStep: 0.1,
-        })
+        regulatorService.getCharacteristic(Characteristic.CurrentTemperature)
+            .setProps({
+                maxValue: 100,
+                minValue: 0,
+                minStep: 0.1,
+            })
 
-        regulatorService.getCharacteristic(Characteristic.TargetTemperature).setProps({
-            maxValue: 30,
-            minValue: 5,
-            minStep: 0.5,
-        })
+        regulatorService.getCharacteristic(Characteristic.TargetTemperature)
+            .setProps({
+                minValue: 5,
+                maxValue: 30,
+                minStep: 0.5,
+            })
 
         regulatorService
             .getCharacteristic(Characteristic.TargetNightTemperature)
-            .on('get', this.getTargetNightTemperature.bind(this))
-            .on('set', this.setTargetNightTemperature.bind(this))
+            .onGet(this.getTargetNightTemperature.bind(this))
+            .onSet(this.setTargetNightTemperature.bind(this))
 
         regulatorService.getCharacteristic(Characteristic.TargetNightTemperature).setProps({
             maxValue: 30,
@@ -332,8 +334,8 @@ class VRC700HeaterRegulator extends VRC700Accessory {
 
         regulatorService
             .getCharacteristic(Characteristic.TargetDayTemperature)
-            .on('get', this.getTargetDayTemperature.bind(this))
-            .on('set', this.setTargetDayTemperature.bind(this))
+            .onGet(this.getTargetDayTemperature.bind(this))
+            .onSet(this.setTargetDayTemperature.bind(this))
 
         regulatorService.getCharacteristic(Characteristic.TargetDayTemperature).setProps({
             maxValue: 30,
