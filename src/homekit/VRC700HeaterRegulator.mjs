@@ -21,8 +21,6 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.setTargetNightTemperatureCallback = desc.target_reduced_temp.update_callback
         this.setHeatingModeCallback = desc.target_status.update_callback
 
-        this._services = this.createServices()
-
         platform.registerObserver(desc.serial, desc.current_temp.path, this.updateCurrentTemperature.bind(this))
         platform.registerObserver(
             desc.serial,
@@ -40,14 +38,14 @@ class VRC700HeaterRegulator extends VRC700Accessory {
     }
 
     // --------- CURRENT STATE
-    getCurrentHeatingCoolingState(callback) {
+    getCurrentHeatingCoolingState() {
         switch (this.CurrentHeatingCoolingState) {
             case 'STANDBY':
-                return callback(null, Characteristic.CurrentHeatingCoolingState.OFF)
+                return Characteristic.CurrentHeatingCoolingState.OFF
             case 'HEATING':
-                return callback(null, Characteristic.CurrentHeatingCoolingState.HEAT)
+                return Characteristic.CurrentHeatingCoolingState.HEAT
             default:
-                return callback(null, Characteristic.CurrentHeatingCoolingState.COOL)
+                return Characteristic.CurrentHeatingCoolingState.COOL
         }
     }
 
@@ -98,9 +96,9 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         }
     }
 
-    getTargetHeatingCoolingState(callback) {
+    getTargetHeatingCoolingState() {
         let hkState = this.vrc700ToHomeKitTargetState(this.TargetHeatingCoolingState)
-        return callback(null, hkState)
+        return hkState
     }
 
     updateTargetHeatingCoolingState(value) {
@@ -114,7 +112,7 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.updateTargetTemperature()
     }
 
-    setTargetHeatingCoolingState(value, callback) {
+    setTargetHeatingCoolingState(value) {
         let vrc700State = this.hkToVRC700TargetState(value)
 
         if (this.TargetHeatingCoolingState !== vrc700State) {
@@ -125,14 +123,12 @@ class VRC700HeaterRegulator extends VRC700Accessory {
 
             this.updateTargetTemperature()
         }
-
-        return callback(null)
     }
 
     // --------- CURRENT TEMPERATURE
-    getCurrentTemperature(callback) {
+    getCurrentTemperature() {
         this.log('Getting Current Temperature')
-        return callback(null, this.CurrentTemperature)
+        return this.CurrentTemperature;
     }
 
     updateCurrentTemperature(value) {
@@ -143,7 +139,7 @@ class VRC700HeaterRegulator extends VRC700Accessory {
     }
 
     // --------- TARGET TEMPERATURE
-    getTargetTemperature(callback) {
+    getTargetTemperature() {
         this.log('Getting Target Temperature')
 
         let targetTemp = this.TargetDayTemperature
@@ -152,7 +148,7 @@ class VRC700HeaterRegulator extends VRC700Accessory {
             targetTemp = this.TargetNightTemperature
         }
 
-        return callback(null, targetTemp)
+        return targetTemp
     }
 
     updateTargetTemperature() {
@@ -166,12 +162,12 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.accessoryService.getCharacteristic(Characteristic.TargetTemperature).updateValue(targetTemp)
     }
 
-    setTargetTemperature(value, callback) {
+    setTargetTemperature(value) {
         if (this.TargetHeatingCoolingState === 'NIGHT') {
-            return this.setTargetNightTemperature(value, callback)
+            return this.setTargetNightTemperature(value)
         }
 
-        return this.setTargetDayTemperature(value, callback)
+        return this.setTargetDayTemperature(value)
     }
 
     // --------- TARGET DAY TEMPERATURE
@@ -186,7 +182,7 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.updateTargetTemperature()
     }
 
-    getTargetDayTemperature(callback) {
+    getTargetDayTemperature() {
         this.log('Getting Target Day Temperature')
 
         let value = this.TargetDayTemperature
@@ -194,10 +190,10 @@ class VRC700HeaterRegulator extends VRC700Accessory {
             value = cToF(value)
         }
 
-        return callback(null, value)
+        return value
     }
 
-    setTargetDayTemperature(value, callback) {
+    setTargetDayTemperature(value) {
         this.log('Setting Target Day Temperature to: ', value)
 
         if (this.TemperatureDisplayUnits === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
@@ -206,8 +202,6 @@ class VRC700HeaterRegulator extends VRC700Accessory {
 
         this.setTargetDayTemperatureCallback(value)
         this.TargetDayTemperature = value
-
-        return callback(null)
     }
 
     // --------- TARGET NIGHT TEMPERATURE
@@ -222,18 +216,17 @@ class VRC700HeaterRegulator extends VRC700Accessory {
         this.updateTargetTemperature()
     }
 
-    getTargetNightTemperature(callback) {
+    getTargetNightTemperature() {
         this.log('Getting Target Night Temperature')
 
         let value = this.TargetNightTemperature
         if (this.TemperatureDisplayUnits == Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
             value = cToF(value)
         }
-
-        return callback(null, value)
+        return value
     }
 
-    setTargetNightTemperature(value, callback) {
+    setTargetNightTemperature(value) {
         this.log('Setting Target Night Temperature to: ', value)
 
         if (this.TemperatureDisplayUnits === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
@@ -242,11 +235,9 @@ class VRC700HeaterRegulator extends VRC700Accessory {
 
         this.setTargetNightTemperatureCallback(value)
         this.TargetNightTemperature = value
-
-        return callback(null)
     }
 
-    getTemperatureDisplayUnits(callback) {
+    getTemperatureDisplayUnits() {
         this.log('Getting Temperature Display Units')
         const json = {
             units: 0,
@@ -258,20 +249,17 @@ class VRC700HeaterRegulator extends VRC700Accessory {
             this.TemperatureDisplayUnits = Characteristic.TemperatureDisplayUnits.FAHRENHEIT
             this.log('Temperature Display Units is ℉')
         }
-        return callback(null, this.TemperatureDisplayUnits)
+        return this.TemperatureDisplayUnits
     }
 
-    setTemperatureDisplayUnits(value, callback) {
+    setTemperatureDisplayUnits(value) {
         this.log(`Setting Temperature Display Units from ${this.TemperatureDisplayUnits} to ${value}`)
         this.TemperatureDisplayUnits = value
-        return callback(null)
     }
 
-    getName(callback) {
-        var error
+    getName() {
         this.log('getName :', this.name)
-        error = null
-        return callback(error, this.name)
+        return this.name
     }
 
     createAccessoryService() {

@@ -2,7 +2,6 @@ const generateUDID = (accessory, suffix) => {
     const uuid = accessory.UUID;
     return uuid.slice(0, suffix.length) + suffix;
 }
-import packageFile from '../../package.json'
 let Accessory, Characteristic, Service
 export default class VRC700Accessory {
     constructor(log, platform, accessory, config, name) {
@@ -16,9 +15,8 @@ export default class VRC700Accessory {
         this.model = config.gateway
         this.firmware = config.firmware || 'UNKNOWN'
         this.serial = config.serial
-        this.version = packageFile.version
+        this.version = '0.0.1'
         this.accessory = accessory
-
         this.log = (...args) => log(this.name, '>', ...args)
     }
 

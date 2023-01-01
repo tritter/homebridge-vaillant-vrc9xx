@@ -2,20 +2,12 @@
 
 import _ from 'lodash'
 import util from 'util'
-import packageFile from '../../package.json'
 
 import VaillantVRC9xxPlatformAccessory from './VaillantVRC9xxPlatformAccessory.mjs'
 import VRC9xxAPI from '../api/VaillantAPIClient.mjs'
 import VRC9xxAPIPoller, { VAILLANT_POLLER_EVENTS } from '../api/VaillantAPIPoller.mjs'
 import { buildFacilityDescriptor } from './HomeKitDescriptor.mjs'
-
-const VERSION = packageFile.version
-const PLUGIN_NAME = packageFile.name
-const FRIENDLY_NAME = 'VaillantVRC9xx'
-
-export default homebridge => {
-    homebridge.registerPlatform(FRIENDLY_NAME, VaillantVRC9xxPlatform)
-}
+import { PLATFORM_NAME, PLUGIN_NAME } from '../settings.mjs'
 
 const DEFAULT_CONFIG = {
     platform: 'VaillantVRC9xx',
@@ -30,18 +22,17 @@ const DEFAULT_CONFIG = {
     },
 }
 
-
-class VaillantVRC9xxPlatform {
+export class VaillantVRC9xxPlatform {
 
     constructor(log, config, api) {
         this.Characteristic = api.hap.Characteristic
         this.Service = api.hap.Service
         this.Accessory = api.hap.Accessory
 
-        log(`${FRIENDLY_NAME} Platform loaded - version ${VERSION}`)
+        log(`${PLATFORM_NAME} Platform loaded`)
 
         if (!config) {
-            log.warn(`Ignoring ${FRIENDLY_NAME} Platform setup because it is not configured`)
+            log.warn(`Ignoring ${PLATFORM_NAME} Platform setup because it is not configured`)
             this.disabled = true
             return
         }
@@ -114,8 +105,7 @@ class VaillantVRC9xxPlatform {
                 rbr_regulators: facility.rbr_regulators,
                 switches: facility.switches,
             }
-
-            const platformAccessory = new this.api.platformAccessory(name, uuid);
+            const platformAccessory = accessory || new this.api.platformAccessory(name, uuid);
             platformAccessory.context.config = config_data;
             new VaillantVRC9xxPlatformAccessory(this.log, this, platformAccessory);
             if (accessory) {
@@ -123,7 +113,7 @@ class VaillantVRC9xxPlatform {
                 this.api.updatePlatformAccessories([platformAccessory]);
               } else {
                 this.log(`New facility ${name} - ${serial} - ${uuid}`)
-                this.api.registerPlatformAccessories(PLUGIN_NAME, FRIENDLY_NAME, [platformAccessory]);
+                this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [platformAccessory]);
               }
         } catch (error) {
             this.log(error)
@@ -136,16 +126,9 @@ class VaillantVRC9xxPlatform {
     }
 
     registerObserver(serial, path, observer) {
+        this.log('REGISTER OBSERVER')
         return this.Poller.subscribe(serial, path, observer)
     }
-
-    // async accessories(callback) {
-    //     this.log('Received callback')
-    //     this.registerAccessories = callback
-
-    //     this.log('Start polling for data')
-    //     await this.Poller.start()
-    // }
 }
 
 function defineCustomCharateristics(Characteristic) {

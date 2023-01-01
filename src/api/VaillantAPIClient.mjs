@@ -1,5 +1,5 @@
 import * as rxjs from 'rxjs'
-import * as operators from 'rxjs/operators'
+import * as operators from 'rxjs/operators/index.js'
 
 import _ from 'lodash'
 import EventEmitter from 'events'

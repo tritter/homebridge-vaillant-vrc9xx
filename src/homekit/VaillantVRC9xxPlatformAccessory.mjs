@@ -1,4 +1,4 @@
-import VRC700Thermostat from './VRC700Thermostat'
+import VRC700Thermostat from './VRC700Thermostat.mjs'
 
 export default class VaillantVRC9xxPlatformAccessory {
 
