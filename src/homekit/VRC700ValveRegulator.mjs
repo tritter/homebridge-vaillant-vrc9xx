@@ -24,8 +24,6 @@ class VRC700ValveRegulator extends VRC700Accessory {
         this.setRoomQuickVeto = desc.target_temp.veto_callback
         this.setHeatingModeCallback = desc.target_status.update_callback
 
-        this._services = this.createServices()
-
         platform.registerObserver(desc.serial, desc.current_temp.path, this.updateCurrentTemperature.bind(this))
         platform.registerObserver(desc.serial, desc.status_low_battery.path, this.updateStatusLowBattery.bind(this))
 
@@ -40,16 +38,16 @@ class VRC700ValveRegulator extends VRC700Accessory {
     }
 
     // --------- CURRENT STATE
-    getCurrentHeatingCoolingState(callback) {
+    getCurrentHeatingCoolingState() {
         if (this.CurrentHeatingCoolingState === 'OFF') {
-            return callback(null, Characteristic.CurrentHeatingCoolingState.OFF)
+            return Characteristic.CurrentHeatingCoolingState.OFF
         }
 
         if (this.CurrentTemperature > this.TargetTemperature) {
-            return callback(null, Characteristic.CurrentHeatingCoolingState.OFF)
+            return Characteristic.CurrentHeatingCoolingState.OFF
         }
 
-        return callback(null, Characteristic.CurrentHeatingCoolingState.HEAT)
+        return Characteristic.CurrentHeatingCoolingState.HEAT
     }
 
     updateCurrentHeatingCoolingState(value) {
@@ -86,9 +84,9 @@ class VRC700ValveRegulator extends VRC700Accessory {
         }
     }
 
-    getTargetHeatingCoolingState(callback) {
+    getTargetHeatingCoolingState() {
         let hkState = this.vrc700ToHomeKitTargetState(this.TargetHeatingCoolingState)
-        return callback(null, hkState)
+        return hkState
     }
 
     updateTargetHeatingCoolingState(value) {
@@ -100,7 +98,7 @@ class VRC700ValveRegulator extends VRC700Accessory {
         this.accessoryService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(hkState)
     }
 
-    setTargetHeatingCoolingState(value, callback) {
+    setTargetHeatingCoolingState(value) {
         let vrc700State = this.hkToVRC700TargetState(value)
 
         if (this.TargetHeatingCoolingState !== vrc700State) {
@@ -109,14 +107,12 @@ class VRC700ValveRegulator extends VRC700Accessory {
             this.TargetHeatingCoolingState = vrc700State
             this.setHeatingModeCallback(this.TargetHeatingCoolingState)
         }
-
-        return callback(null)
     }
 
     // --------- CURRENT TEMPERATURE
-    getCurrentTemperature(callback) {
+    getCurrentTemperature() {
         this.log('Getting Current Temperature')
-        return callback(null, this.CurrentTemperature)
+        return this.CurrentTemperature
     }
 
     updateCurrentTemperature(value) {
@@ -127,9 +123,9 @@ class VRC700ValveRegulator extends VRC700Accessory {
     }
 
     // --------- Low Battery
-    getStatusLowBattery(callback) {
+    getStatusLowBattery() {
         this.log('Getting Current Battery Status')
-        return callback(null, this.StatusLowBattery)
+        return this.StatusLowBattery
     }
 
     updateStatusLowBattery(value) {
@@ -147,12 +143,12 @@ class VRC700ValveRegulator extends VRC700Accessory {
         this.accessoryService.getCharacteristic(Characteristic.TargetTemperature).updateValue(this.TargetTemperature)
     }
 
-    getTargetTemperature(callback) {
+    getTargetTemperature() {
         this.log('Getting Target Room Temperature')
-        return callback(null, this.TargetTemperature)
+        return this.TargetTemperature
     }
 
-    setTargetTemperature(value, callback) {
+    setTargetTemperature(value) {
         if (this.TemperatureDisplayUnits === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
             value = cToF(value)
         }
@@ -169,11 +165,9 @@ class VRC700ValveRegulator extends VRC700Accessory {
         }
 
         this.log('Setting Target Room Temperature to: ', value)
-
-        return callback(null)
     }
 
-    getTemperatureDisplayUnits(callback) {
+    getTemperatureDisplayUnits() {
         this.log('Getting Temperature Display Units')
         const json = {
             units: 0,
@@ -185,20 +179,17 @@ class VRC700ValveRegulator extends VRC700Accessory {
             this.TemperatureDisplayUnits = Characteristic.TemperatureDisplayUnits.FAHRENHEIT
             this.log('Temperature Display Units is ℉')
         }
-        return callback(null, this.TemperatureDisplayUnits)
+        return this.TemperatureDisplayUnits
     }
 
-    setTemperatureDisplayUnits(value, callback) {
+    setTemperatureDisplayUnits(value) {
         this.log(`Setting Temperature Display Units from ${this.TemperatureDisplayUnits} to ${value}`)
         this.TemperatureDisplayUnits = value
-        return callback(null)
     }
 
-    getName(callback) {
-        var error
+    getName() {
         this.log('getName :', this.name)
-        error = null
-        return callback(error, this.name)
+        return this.name
     }
 
     createAccessoryService() {

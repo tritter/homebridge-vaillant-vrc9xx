@@ -21,13 +21,11 @@ class VRC700TemperatureSensor extends VRC700Accessory {
 
         this.platform = platform
 
-        this._services = this.createServices()
-
         this.platform.registerObserver(desc.serial, desc.path, this.updateCurrentTemperature.bind(this))
     }
 
-    getCurrentTemperature(callback) {
-        return callback(null, this.currentTemperature)
+    getCurrentTemperature() {
+        return this.currentTemperature
     }
 
     updateCurrentTemperature(value) {
@@ -59,12 +57,13 @@ class VRC700TemperatureSensor extends VRC700Accessory {
 
     createAccessoryService() {
         let service = new Eve.Services.TemperatureSensor(this.name, this.name)
+        this.accessoryService = service
+
         service
             .setCharacteristic(Characteristic.Name, this.name)
             .getCharacteristic(Characteristic.CurrentTemperature)
             .onGet(this.getCurrentTemperature.bind(this))
 
-        this.accessoryService = service
 
         const config = {
             disableTimer: true,

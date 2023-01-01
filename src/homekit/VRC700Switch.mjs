@@ -16,8 +16,8 @@ class VRC700Switch extends VRC700Accessory {
         platform.registerObserver(desc.serial, desc.path, this.updateCurrentValue.bind(this))
     }
 
-    getCurrentValue(callback) {
-        return callback(null, this.currentValue)
+    getCurrentValue() {
+        return this.currentValue
     }
 
     updateCurrentValue(value) {
@@ -30,12 +30,13 @@ class VRC700Switch extends VRC700Accessory {
     }
 
     createAccessoryService() {
-        const service = this.accessory.getService(this.udid)
-      || this.accessory.addService(Service.Switch, this.name, this.udid)
+        const service = this.accessory.getService(this.udid) || this.accessory.addService(Service.ContactSensor, this.name, this.udid)
         service
             .setCharacteristic(Characteristic.Name, this.name)
+
+        service
             .getCharacteristic(Characteristic.ContactSensorState)
-            .onGet(this.getCurrentValue.bind(this))
+                .onGet(this.getCurrentValue.bind(this))
         this.accessoryService = service
         return service
     }

@@ -30,6 +30,9 @@ class VRC700Thermostat {
 
     createAccessories() {
         const accessories = [...this.createRegulators(), ...this.createSensors(), ...this.createSwitches()]
+        accessories.forEach(access => {
+            access.createServices()
+        })
         return accessories
     }
 
