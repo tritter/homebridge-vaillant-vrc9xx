@@ -1,15 +1,14 @@
 import VRC700Accessory from './VRC700Accessory.mjs'
 
 import moment from 'moment'
-import homebridgeLib from 'homebridge-lib'
 import historyFactory from 'fakegato-history'
 
-let HistoryService, Eve, Characteristic
+let HistoryService, Services, Characteristic
 
 class VRC700TemperatureSensor extends VRC700Accessory {
     constructor(log, platform, accessory, config, desc) {
         HistoryService = historyFactory(platform.api)
-        Eve = new homebridgeLib.EveHomeKitTypes(platform.api)
+        Services = platform.Services
         Characteristic = platform.Characteristic
 
         super(log, platform, accessory, config, desc.name)
@@ -56,15 +55,17 @@ class VRC700TemperatureSensor extends VRC700Accessory {
     }
 
     createAccessoryService() {
-        let service = new Eve.Services.TemperatureSensor(this.name, this.name)
-        this.accessoryService = service
-
+        const service = this.accessory.getService(this.udid) || this.accessory.addService(Services.TemperatureSensor, this.name, this.udid)
+        
         service
             .setCharacteristic(Characteristic.Name, this.name)
+        
+        service
             .getCharacteristic(Characteristic.CurrentTemperature)
-            .onGet(this.getCurrentTemperature.bind(this))
+                .onGet(this.getCurrentTemperature.bind(this))
 
-
+        this.accessoryService = service
+        
         const config = {
             disableTimer: true,
             disableRepeatLastData: true,
@@ -74,7 +75,7 @@ class VRC700TemperatureSensor extends VRC700Accessory {
         }
         this.loggingService = new HistoryService('weather', this, config)
 
-        return [service, this.loggingService]
+        return [this.accessoryService, this.loggingService]
     }
 }
 
