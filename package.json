@@ -1,7 +1,7 @@
 {
     "name": "@tritter/homebridge-vaillant-vrc9xx",
     "displayName": "VaillantVRC9xx",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "description": "Vaillant VRC9xx - Homebridge Platform Plugin ",
     "repository": {
         "url": "git+https://github.com/lmelon/homebridge-vaillant-vrc9xx.git",
