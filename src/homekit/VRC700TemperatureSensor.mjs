@@ -1,13 +1,9 @@
 import VRC700Accessory from './VRC700Accessory.mjs'
 
-import moment from 'moment'
-import historyFactory from 'fakegato-history'
-
-let HistoryService, Service, Characteristic
+let Service, Characteristic
 
 class VRC700TemperatureSensor extends VRC700Accessory {
     constructor(log, platform, accessory, config, desc) {
-        HistoryService = historyFactory(platform.api)
         Service = platform.Service
         Characteristic = platform.Characteristic
 
@@ -33,30 +29,11 @@ class VRC700TemperatureSensor extends VRC700Accessory {
 
         this.accessoryService.getCharacteristic(Characteristic.CurrentTemperature)
             .updateValue(this.currentTemperature)
-
-        this.addHistoricalEntry()
-    }
-
-    addHistoricalEntry() {
-        /*
-            We want an entry at least every 5 min. So schedule a timer to log 1 data point every 10 mins (if no new data comes in).
-            If new data is received, cancel the existing timer and schedule a new one (in 10 mins from now).
-        */
-
-        if (this.historyTimer) {
-            clearTimeout(this.historyTimer)
-            this.historyTimer = null
-        }
-
-        const entry = { time: moment().unix(), temp: this.currentTemperature }
-        this.loggingService.addEntry(entry)
-
-        this.historyTimer = setTimeout(this.addHistoricalEntry.bind(this), 5 * 60 * 1000)
     }
 
     createAccessoryService() {
         const service = this.accessory.getService(this.udid) || this.accessory.addService(Service.TemperatureSensor, this.name, this.udid)
-        
+
         service
             .setCharacteristic(Characteristic.Name, this.name)
         
@@ -65,17 +42,7 @@ class VRC700TemperatureSensor extends VRC700Accessory {
                 .onGet(this.getCurrentTemperature.bind(this))
 
         this.accessoryService = service
-        
-        const config = {
-            disableTimer: true,
-            disableRepeatLastData: true,
-            storage: 'fs',
-            path: this.platform.api.user.storagePath() + '/accessories',
-            filename: 'history_' + this.serial + '.json',
-        }
-        this.loggingService = new HistoryService('weather', this, config)
-
-        return [this.accessoryService, this.loggingService]
+        return service
     }
 }
 
