@@ -126,7 +126,6 @@ export class VaillantVRC9xxPlatform {
     }
 
     registerObserver(serial, path, observer) {
-        this.log('REGISTER OBSERVER')
         return this.Poller.subscribe(serial, path, observer)
     }
 }

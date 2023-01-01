@@ -137,7 +137,6 @@ class VRC700HotWaterRegulator extends VRC700Accessory {
     }
 
     setTargetTemperature(value) {
-        this.log(value)
         if (this.TemperatureDisplayUnits === Characteristic.TemperatureDisplayUnits.FAHRENHEIT) {
             value = cToF(value)
         }
