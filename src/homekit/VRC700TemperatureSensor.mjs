@@ -3,12 +3,12 @@ import VRC700Accessory from './VRC700Accessory.mjs'
 import moment from 'moment'
 import historyFactory from 'fakegato-history'
 
-let HistoryService, Services, Characteristic
+let HistoryService, Service, Characteristic
 
 class VRC700TemperatureSensor extends VRC700Accessory {
     constructor(log, platform, accessory, config, desc) {
         HistoryService = historyFactory(platform.api)
-        Services = platform.Services
+        Service = platform.Service
         Characteristic = platform.Characteristic
 
         super(log, platform, accessory, config, desc.name)
@@ -55,7 +55,7 @@ class VRC700TemperatureSensor extends VRC700Accessory {
     }
 
     createAccessoryService() {
-        const service = this.accessory.getService(this.udid) || this.accessory.addService(Services.TemperatureSensor, this.name, this.udid)
+        const service = this.accessory.getService(this.udid) || this.accessory.addService(Service.TemperatureSensor, this.name, this.udid)
         
         service
             .setCharacteristic(Characteristic.Name, this.name)
