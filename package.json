@@ -25,7 +25,6 @@
     "license": "MIT",
     "dependencies": {
         "fakegato-history": "^0.6.2",
-        "homebridge-lib": "^6.0.2",
         "lodash": "^4.17.21",
         "moment": "^2.29.4",
         "node-fetch-cookies": "2.0.4",
