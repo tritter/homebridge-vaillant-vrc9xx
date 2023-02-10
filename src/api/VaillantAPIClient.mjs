@@ -369,6 +369,21 @@ class VRC9xxAPI extends EventEmitter {
         })
     }
 
+    async setQuickMode(facilitySerial, mode, active) {
+        const url = `/facilities/${facilitySerial}/systemcontrol/v1/configuration/quickmode`
+
+        const data = {
+            quickmode: active ? {quickmode: mode} : {},
+        }
+
+        this.enqueueCommand({
+            url,
+            data,
+            method: active ? 'put' : 'delete',
+            description: 'Set Quick Mode',
+        })
+    }
+
     // *******************************************************************
     async getOverview(facilitySerial) {
         const url = `/facilities/${facilitySerial}/hvacstate/v1/overview`

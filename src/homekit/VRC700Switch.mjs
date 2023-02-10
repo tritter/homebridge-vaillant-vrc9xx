@@ -9,34 +9,44 @@ class VRC700Switch extends VRC700Accessory {
 
         super(log, platform, accessory, config, desc.name)
 
-        this.currentValue = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+        this.currentValue = false
 
         this._services = this.createServices()
+
+        this.getOnCallback = desc.get_callback
+        this.setOnCallback = desc.set_callback
 
         platform.registerObserver(desc.serial, desc.path, this.updateCurrentValue.bind(this))
     }
 
-    getCurrentValue() {
-        return this.currentValue
-    }
-
     updateCurrentValue(value) {
-        this.currentValue = value.current
-            ? Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-            : Characteristic.ContactSensorState.CONTACT_DETECTED
+        this.currentValue = this.getOnCallback(value)
 
-        this.accessoryService.getCharacteristic(Characteristic.ContactSensorState)
+        this.accessoryService.getCharacteristic(Characteristic.On)
             .updateValue(this.currentValue)
     }
 
+    getOnValue() {
+        this.log(`Getting ${this.name} switch value ${this.currentValue}`)
+        return this.currentValue
+    }
+
+    setOnValue(value) {
+        this.log(`Setting ${this.name} switch to ${value}`)
+        this.setOnCallback(value)
+        this.currentValue = value
+    }
+
     createAccessoryService() {
-        const service = this.accessory.getService(this.udid) || this.accessory.addService(Service.ContactSensor, this.name, this.udid)
+        const service = this.accessory.getService(this.udid) || this.accessory.addService(Service.Switch, this.name, this.udid)
         service
             .setCharacteristic(Characteristic.Name, this.name)
 
         service
-            .getCharacteristic(Characteristic.ContactSensorState)
-                .onGet(this.getCurrentValue.bind(this))
+            .getCharacteristic(Characteristic.On)
+                .onGet(this.getOnValue.bind(this))
+                .onSet(this.setOnValue.bind(this))
+
         this.accessoryService = service
         return service
     }

@@ -233,27 +233,47 @@ export function buildFacilityDescriptor(facility, api) {
         return regulators
     }
 
-    function buildSwitchesDescriptor(name, serial, info) {
+    function buildSwitchesDescriptor(name, serial, info, api) {
         let switches = []
 
-        const pendingSwitch = {
+        const hotWaterBoostModeSwitch = {
             type: 'SWITCH',
+            name: `${name} - Hot Water Boost Mode`,
+            serial,
+            path: `system.configuration.quickmode`,
+            get_callback: value => {
+                return value?.current?.quickmode === 'QM_HOTWATER_BOOST'
+            },
+            set_callback: value => {
+                api.setQuickMode(serial, 'QM_HOTWATER_BOOST', value)
+            }
+        }
+        switches.push(hotWaterBoostModeSwitch)
+
+        return switches
+    }
+
+    function buildContactsDescriptor(name, serial, info) {
+        let contacts = []
+
+        const pendingContactSensor = {
+            type: 'CONTACT',
             name: `${name} - Gateway Synced`,
             serial,
             path: `meta.gateway`,
         }
-        switches.push(pendingSwitch)
+        contacts.push(pendingContactSensor)
 
-        const staleSwitch = {
-            type: 'SWITCH',
+        const staleContactSensor = {
+            type: 'CONTACT',
             name: `${name} - Cloud Connected`,
             serial,
             path: `meta.cloud`,
         }
 
-        switches.push(staleSwitch)
+        contacts.push(staleContactSensor)
 
-        return switches
+        return contacts
     }
 
     const serial = facility.description.serialNumber
@@ -266,7 +286,8 @@ export function buildFacilityDescriptor(facility, api) {
         regulators: buildRegulatorDescriptor(name, serial, facility.state, api),
         dhw_regulators: buildDHWRegulatorDescriptor(name, serial, facility.state, api),
         rbr_regulators: buildRBRRegulatorDescriptor(name, serial, facility.state, api),
-        switches: buildSwitchesDescriptor(name, serial, facility),
+        switches: buildSwitchesDescriptor(name, serial, facility, api),
+        contacts: buildContactsDescriptor(name, serial, facility)
     }
 
     return hkDescriptor

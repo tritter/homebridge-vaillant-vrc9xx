@@ -5,6 +5,7 @@ import VRC700TemperatureSensor from './VRC700TemperatureSensor.mjs'
 import VRC700ValveRegulator from './VRC700ValveRegulator.mjs'
 import VRC700HeaterRegulator from './VRC700HeaterRegulator.mjs'
 import VRC700HotWaterRegulator from './VRC700HotWaterRegulator.mjs'
+import VRC700Contact from './VRC700Contact.mjs'
 
 class VRC700Thermostat {
     constructor(log, platform, accessory, config) {
@@ -19,6 +20,7 @@ class VRC700Thermostat {
         this.dhw_regulators = config.dhw_regulators
         this.rbr_regulators = config.rbr_regulators
         this.switches = config.switches
+        this.contacts = config.contacts
 
         // state
         this._accessories = this.createAccessories()
@@ -29,7 +31,7 @@ class VRC700Thermostat {
     }
 
     createAccessories() {
-        const accessories = [...this.createRegulators(), ...this.createSensors(), ...this.createSwitches()]
+        const accessories = [...this.createRegulators(), ...this.createSensors(), ...this.createSwitches(), ...this.createContacts()]
         accessories.forEach(access => {
             access.createServices()
         })
@@ -40,6 +42,16 @@ class VRC700Thermostat {
         let accessories = []
         this.switches.forEach(desc => {
             let accessory = new VRC700Switch(this.log, this.platform, this.accessory, this.config, desc)
+            accessories.push(accessory)
+        })
+
+        return accessories
+    }
+
+    createContacts() {
+        let accessories = []
+        this.contacts.forEach(desc => {
+            let accessory = new VRC700Contact(this.log, this.platform, this.accessory, this.config, desc)
             accessories.push(accessory)
         })
 

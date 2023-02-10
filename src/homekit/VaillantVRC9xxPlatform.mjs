@@ -104,6 +104,7 @@ export class VaillantVRC9xxPlatform {
                 dhw_regulators: facility.dhw_regulators,
                 rbr_regulators: facility.rbr_regulators,
                 switches: facility.switches,
+                contacts: facility.contacts
             }
             const platformAccessory = accessory || new this.api.platformAccessory(name, uuid);
             platformAccessory.context.config = config_data;
